@@ -1,0 +1,112 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "clusterName":{
+        "type": "string",
+        "defaultValue": "sindhuja-cluster-new-infra",
+        "metadata": {
+          "description": "Name for the cluster set up"
+        }
+      },
+      "vnetName":{
+        "type": "string",
+        "defaultValue": "VNet1",
+        "metadata": {
+          "description": "VNet name"
+        }
+      },
+      "vnetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/16",
+      "metadata": {
+        "description": "Address prefix for the new Virtual Network"
+        }
+      },
+     "subnet1Prefix": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/24",
+      "metadata": {
+        "description": "Subnet 1 Prefix"
+       }
+     },
+     "subnet1Name": {
+      "type": "string",
+      "defaultValue": "Subnet1",
+      "metadata": {
+        "description": "Subnet 1 Name"
+      }
+     },
+     "subnet2Prefix": {
+      "type": "string",
+      "defaultValue": "10.0.1.0/24",
+      "metadata": {
+        "description": "Subnet 2 Prefix"
+      }
+     },
+     "subnet2Name": {
+      "type": "string",
+      "defaultValue": "Subnet2",
+      "metadata": {
+        "description": "Subnet 2 Name"
+      }
+     },
+     "bastion-subnet-ip-prefix": {
+      "type": "string",
+      "defaultValue": "10.0.2.0/24",
+      "metadata": {
+        "description": "Bastion subnet IP prefix MUST be within vnet IP prefix address space"
+        }
+      },
+     "bastion-host-name": {
+      "type": "string",
+      "defaultValue": "sindhuja-bastion-host",
+      "metadata": {
+          "description": "Name of Azure Bastion resource"
+        }
+      }
+    },
+    "resources": [
+        {
+          "apiVersion": "2019-10-01",
+          "name": "linkedTemplate-Vnet",
+          "type": "Microsoft.Resources/deployments",
+          "properties": {
+            "mode": "Incremental",
+            "templateLink": {
+              "uri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.json",
+              "contentVersion": "1.0.0.0"
+              },
+              "parameters":{
+                "vnetAddressPrefix":{"value": "[parameters('vnetAddressPrefix')]"},
+                "subnet1Prefix":{"value": "[parameters('subnet1Prefix')]"},
+                "subnet1Name":{"value": "[parameters('subnet1Name')]"},
+                "subnet2Prefix":{"value": "[parameters('subnet2Prefix')]"},
+                "subnet2Name":{"value": "[parameters('subnet2Name')]"}
+              }
+          }
+        },
+        {
+          "apiVersion": "2019-10-01",
+          "name": "linkedTemplate-Bastion",
+          "type": "Microsoft.Resources/deployments",
+          "dependsOn": [
+            "linkedTemplate-Vnet"
+          ],
+          "properties": {
+            "mode": "Incremental",
+            "templateLink": {
+              "uri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-azure-bastion/azuredeploy.json",
+              "contentVersion": "1.0.0.0"
+            },
+            "parameters": {
+              "vnet-name":  {"value": "[parameters('vnetName')]"}, 
+              "vnet-ip-prefix": {"value": "[parameters('vnetAddressPrefix')]"},
+              "vnet-new-or-existing": {"value": "existing" },
+              "bastion-subnet-ip-prefix": {"value": "[parameters('bastion-subnet-ip-prefix')]"},
+              "bastion-host-name": {"value": "[parameters('bastion-host-name')]"}
+            }
+          }
+        }
+      ]
+}
