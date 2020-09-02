@@ -4,7 +4,7 @@
     "parameters": {
       "clusterName":{
         "type": "string",
-        "defaultValue": "sindhuja-cluster-new-infra",
+        "defaultValue": "cluster-new-infra",
         "metadata": {
           "description": "Name for the cluster set up"
         }
@@ -60,7 +60,7 @@
       },
      "bastion-host-name": {
       "type": "string",
-      "defaultValue": "sindhuja-bastion-host",
+      "defaultValue": "bastion-host",
       "metadata": {
           "description": "Name of Azure Bastion resource"
         }
