@@ -98,7 +98,7 @@
   "outputs":{
     "subnet2ResourceID": {
       "type": "string",
-      "value": "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'), parameters('subnet2Name'))]"
+      "value": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnet2Name'))]"
     }
   }
 }
