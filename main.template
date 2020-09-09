@@ -126,7 +126,7 @@
               "subnetName":{"value": "[parameters('subnet2Prefix')]"},
               "vnetAddressPrefix":{"value": "[parameters('vnetAddressPrefix')]"},
               "subnetPrefix":{"value": "[parameters('subnet2Prefix')]"},
-              "virtualNetworkSubnetId": {"value": "[reference(linkedTemplate-Vnet).outputs.subnet2ResourceID.value]"},
+              "virtualNetworkSubnetId": {"value": "[reference('linkedTemplate-Vnet').outputs.subnet2ResourceID.value]"},
               "skuSizeMB":{"value": 51200}
             }
           }
