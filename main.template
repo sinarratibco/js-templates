@@ -64,6 +64,12 @@
       "metadata": {
           "description": "Name of Azure Bastion resource"
         }
+      },
+      "virtualNetworkSubnetId": {
+        "type": "string"
+          "metadata": {
+              "description": "Subnet ID"
+          }
       }
     },
     "resources": [
@@ -126,7 +132,7 @@
               "subnetName":{"value": "[parameters('subnet2Prefix')]"},
               "vnetAddressPrefix":{"value": "[parameters('vnetAddressPrefix')]"},
               "subnetPrefix":{"value": "[parameters('subnet2Prefix')]"},
-              "virtualNetworkSubnetId": {"value": "[reference('linkedTemplate-Vnet').outputs.subnet2ResourceID.value]"},
+              "virtualNetworkSubnetId": {"value": "[parameters('virtualNetworkSubnetId')]"},
               "skuSizeMB":{"value": 51200}
             }
           }
