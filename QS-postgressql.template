@@ -127,7 +127,8 @@
             }
         },
         "virtualNetworkSubnetId": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "subnet",
             "metadata": {
                 "description": "Subnet ID"
             }
