@@ -125,6 +125,12 @@
             "metadata": {
                 "description": "Subnet Address Prefix"
             }
+        },
+        "virtualNetworkSubnetId": {
+            "type": "string"
+            "metadata": {
+                "description": "Subnet ID"
+            }
         }
     },
     "variables": {
@@ -174,7 +180,7 @@
                     "type": "virtualNetworkRules",
                     "apiVersion": "2017-12-01",
                     "properties": {
-                        "virtualNetworkSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
+                        "virtualNetworkSubnetId": "[parameters('virtualNetworkSubnetId')]",
                         "ignoreMissingVnetServiceEndpoint": true
                     },
                     "dependsOn": [

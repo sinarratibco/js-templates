@@ -68,26 +68,25 @@
     },
     "resources": [
         {
-          "apiVersion": "2019-10-01",
+          "apiVersion": "2020-06-01",
           "name": "linkedTemplate-Vnet",
           "type": "Microsoft.Resources/deployments",
           "properties": {
             "mode": "Incremental",
             "templateLink": {
-              "uri": "https://raw.githubusercontent.com/sinarratibco/js-templates/master/QS-vnet.template",
-              "contentVersion": "1.0.0.0"
+              "uri": "https://raw.githubusercontent.com/sinarratibco/js-templates/master/QS-vnet.template"
               },
-              "parameters":{
-                "vnetAddressPrefix":{"value": "[parameters('vnetAddressPrefix')]"},
-                "subnet1Prefix":{"value": "[parameters('subnet1Prefix')]"},
-                "subnet1Name":{"value": "[parameters('subnet1Name')]"},
-                "subnet2Prefix":{"value": "[parameters('subnet2Prefix')]"},
-                "subnet2Name":{"value": "[parameters('subnet2Name')]"}
-              }
+            "parameters":{
+              "vnetAddressPrefix":{"value": "[parameters('vnetAddressPrefix')]"},
+              "subnet1Prefix":{"value": "[parameters('subnet1Prefix')]"},
+              "subnet1Name":{"value": "[parameters('subnet1Name')]"},
+              "subnet2Prefix":{"value": "[parameters('subnet2Prefix')]"},
+              "subnet2Name":{"value": "[parameters('subnet2Name')]"}
+            }
           }
         },
         {
-          "apiVersion": "2019-10-01",
+          "apiVersion": "2020-06-01",
           "name": "linkedTemplate-Bastion",
           "type": "Microsoft.Resources/deployments",
           "dependsOn": [
@@ -96,8 +95,7 @@
           "properties": {
             "mode": "Incremental",
             "templateLink": {
-              "uri": "https://raw.githubusercontent.com/sinarratibco/js-templates/master/QS-bastion.template",
-              "contentVersion": "1.0.0.0"
+              "uri": "https://raw.githubusercontent.com/sinarratibco/js-templates/master/QS-bastion.template"
             },
             "parameters": {
               "vnet-name":  {"value": "[parameters('vnetName')]"}, 
@@ -105,6 +103,31 @@
               "vnet-new-or-existing": {"value": "existing" },
               "bastion-subnet-ip-prefix": {"value": "[parameters('bastion-subnet-ip-prefix')]"},
               "bastion-host-name": {"value": "[parameters('bastion-host-name')]"}
+            }
+          }
+        },
+        {
+          "apiVersion": "2020-06-01",
+          "name": "linkedTemplate-Database",
+          "type": "Microsoft.Resources/deployments",
+          "dependsOn": [
+            "linkedTemplate-Bastion"
+          ],
+          "properties": {
+            "mode": "Incremental",
+            "templateLink": {
+              "uri": "https://raw.githubusercontent.com/sinarratibco/js-templates/master/QS-postgressql.template"
+            },
+            "parameters": {
+              "serverName":{"value": "postgres-js-db"},
+              "administratorLogin":{"value": "postgres"},
+              "administratorLoginPassword":{"value": "$5tX4c{7$?&h't6w"},
+              "virtualNetworkName":{"value": "[parameters('vnetName')]"},
+              "subnetName":{"value": "[parameters('subnet2Prefix')]"},
+              "vnetAddressPrefix":{"value": "[parameters('vnetAddressPrefix')]"},
+              "subnetPrefix":{"value": "[parameters('subnet2Prefix')]"},
+              "virtualNetworkSubnetId": {"value": "[reference(linkedTemplate-Vnet).outputs.subnet2ResourceID.value]"},
+              "skuSizeMB":{"value": 51200}
             }
           }
         }
