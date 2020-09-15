@@ -64,12 +64,16 @@
       "metadata": {
           "description": "Name of Azure Bastion resource"
         }
+      },
+      "js-image": {
+        "defaultValue": "image-name",
+        "type": "string"
       }
     },
     "resources": [
         {
           "apiVersion": "2020-06-01",
-          "name": "linkedTemplate-Vnet",
+          "name": "linkedTemplateVnet",
           "type": "Microsoft.Resources/deployments",
           "properties": {
             "mode": "Incremental",
@@ -90,7 +94,7 @@
           "name": "linkedTemplate-Bastion",
           "type": "Microsoft.Resources/deployments",
           "dependsOn": [
-            "linkedTemplate-Vnet"
+            "linkedTemplateVnet"
           ],
           "properties": {
             "mode": "Incremental",
@@ -126,10 +130,27 @@
               "subnetName":{"value": "[parameters('subnet2Prefix')]"},
               "vnetAddressPrefix":{"value": "[parameters('vnetAddressPrefix')]"},
               "subnetPrefix":{"value": "[parameters('subnet2Prefix')]"},
-              "virtualNetworkSubnetId": {"value": "[reference('linkedTemplate-Vnet').outputs.subnet2ResourceID.value]"},
+              "virtualNetworkSubnetId":{"value": "[reference('linkedTemplateVnet').outputs.subnet2ResourceIdOutput.value]"},
               "skuSizeMB":{"value": 51200}
             }
           }
+        },
+        {
+          "apiVersion": "2020-06-01",
+          "name": "linkedTemplate-Database",
+          "type": "Microsoft.Resources/deployments",
+          "dependsOn": [
+            "linkedTemplate-Database"
+          ],
+          "properties": {
+            "mode": "Incremental",
+            "templateLink": {
+              "uri": "https://raw.githubusercontent.com/sinarratibco/js-templates/master/QS-postgressql.template"
+            },
+            "parameters": {
+              "js-image": {"value": "[parameters('js-image')]}
+              "vmssName": 
+            }
         }
       ]
 }
