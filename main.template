@@ -134,23 +134,6 @@
               "skuSizeMB":{"value": 51200}
             }
           }
-        },
-        {
-          "apiVersion": "2020-06-01",
-          "name": "linkedTemplate-Database",
-          "type": "Microsoft.Resources/deployments",
-          "dependsOn": [
-            "linkedTemplate-Database"
-          ],
-          "properties": {
-            "mode": "Incremental",
-            "templateLink": {
-              "uri": "https://raw.githubusercontent.com/sinarratibco/js-templates/master/QS-postgressql.template"
-            },
-            "parameters": {
-              "js-image": {"value": "[parameters('js-image')]}
-              "vmssName": 
-            }
         }
       ]
 }
