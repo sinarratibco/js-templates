@@ -8,6 +8,13 @@
                 "description": "Server Name for Azure database for PostgreSQL"
             }
         },
+        "databaseNsgName": {
+            "type": "string",
+            "defaultValue": "db-nsg",
+            "metadata": {
+                "description": "Network security name for the database"
+            }
+        },
         "administratorLogin": {
             "type": "string",
             "minLength": 1,
@@ -206,7 +213,10 @@
                                         }
                                     }
                                 ]
-                            }
+                            },
+                            "dependsOn": [
+                                "[parameters('virtualNetworkSubnetId')]"
+                            ]
                         }
                     ],
                     "dependsOn": [
