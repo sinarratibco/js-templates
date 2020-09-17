@@ -8,13 +8,6 @@
                 "description": "Server Name for Azure database for PostgreSQL"
             }
         },
-        "databaseNsgName": {
-            "type": "string",
-            "defaultValue": "db-nsg",
-            "metadata": {
-                "description": "Network security name for the database"
-            }
-        },
         "administratorLogin": {
             "type": "string",
             "minLength": 1,
@@ -191,31 +184,6 @@
                         "virtualNetworkSubnetId": "[parameters('virtualNetworkSubnetId')]",
                         "ignoreMissingVnetServiceEndpoint": true
                     },
-                    "resources": [
-                        {
-                            "type": "Microsoft.Network/networkSecurityGroups",
-                            "apiVersion": "2019-04-01",
-                            "name": "[parameters('databaseNsgName')]",
-                            "location": "[resourceGroup().location]",
-                            "properties": {
-                                "securityRules": [
-                                    {
-                                        "name": "database-rule",
-                                        "properties": {
-                                        "protocol": "tcp" ,
-                                        "sourcePortRange": "5432" ,
-                                        "destinationPortRange": "5432",
-                                        "sourceAddressPrefix": "[parameters('vnetAddressPrefix')]",
-                                        "access": "Allow",
-                                        "priority": 123,
-                                        "direction": "Inbound",
-                                        "description": "Frontend Access"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ],
                     "dependsOn": [
                         "[concat('Microsoft.DBforPostgreSQL/servers/', parameters('serverName'))]"
                     ]
