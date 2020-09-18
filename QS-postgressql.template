@@ -126,11 +126,11 @@
                 "description": "Subnet Address Prefix"
             }
         },
-        "virtualNetworkSubnetId": {
+        "virtualNetworkSubnet2Id": {
             "type": "string",
             "defaultValue": "subnet",
             "metadata": {
-                "description": "Subnet ID"
+                "description": "Subnet 2 ID"
             }
         }
     },
@@ -181,7 +181,7 @@
                     "type": "virtualNetworkRules",
                     "apiVersion": "2017-12-01",
                     "properties": {
-                        "virtualNetworkSubnetId": "[parameters('virtualNetworkSubnetId')]",
+                        "virtualNetworkSubnetId": "[parameters('virtualNetworkSubnet2Id')]",
                         "ignoreMissingVnetServiceEndpoint": true
                     },
                     "dependsOn": [
