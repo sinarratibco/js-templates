@@ -82,7 +82,7 @@
     },
     "variables": {
       "namingInfix": "[parameters('vmssName')]",
-      "virtualNetworkName": "[parameters('vnet')]",
+      "virtualNetworkName": "[parameters('vnetName')]",
       "appGwNetworkSecurityGroupName": "[concat(variables('namingInfix'), 'appGwNsg')]",
       "bastionNetworkSecurityGroupName": "[concat(variables('namingInfix'), 'bastionNsg')]",
       "instanceNetworkSecurityGroupName": "[concat(variables('namingInfix'), 'instanceNsg')]",
