@@ -1,0 +1,440 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "vmSku": {
+        "type": "string",
+        "defaultValue": "Standard_D2s_v3",
+        "metadata": {
+          "description": "Size of VMs in the VM Scale Set."
+        }
+      },
+      "vmssName": {
+        "type": "string",
+        "metadata": {
+          "description": "String used as a base for naming resources. Must be 3-57 characters in length and globally unique across Azure. A hash is prepended to this string for some resources, and resource-specific information is appended."
+        },
+        "maxLength": 57
+      },
+      "instanceCount": {
+        "type": "int",
+        "defaultValue": 1,
+        "metadata": {
+          "description": "Number of VM instances (1000 or less)."
+        },
+        "maxValue": 1000
+      },
+      "adminUsername": {
+        "type": "string",
+        "metadata": {
+          "description": "Admin username on all VMs."
+        }
+      },
+      "authenticationType": {
+        "type": "string",
+        "defaultValue": "password",
+        "allowedValues": [
+          "sshPublicKey",
+          "password"
+        ],
+        "metadata": {
+          "description": "Type of authentication to use on the Virtual Machine. SSH key is recommended."
+        }
+      },
+      "adminPasswordOrKey": {
+        "type": "securestring",
+        "metadata": {
+          "description": "SSH Key or password for the Virtual Machine. SSH key is recommended."
+        }
+      }, 
+      "bastion-subnet-ip-prefix": {
+        "type": "string",
+        "defaultValue": "10.1.1.0/27",
+        "metadata": {
+            "description": "Bastion subnet IP prefix MUST be within vnet IP prefix address space"
+        }
+      },
+      "js-image": {
+        "defaultValue": "image-name",
+        "type": "string"
+      }
+    },
+    "variables": {
+      "namingInfix": "[parameters('vmssName')]",
+      "addressPrefix": "10.0.0.0/16",
+      "subnetPrefix": "10.0.8.0/21",
+      "virtualNetworkName": "[concat(variables('namingInfix'), 'vnet')]",
+      "subnetName": "[concat(variables('namingInfix'), 'subnet')]",
+      "appGwNetworkSecurityGroupName": "[concat(variables('namingInfix'), 'appGwNsg')]",
+      "bastionNetworkSecurityGroupName": "[concat(variables('namingInfix'), 'bastionNsg')]",
+      "instanceNetworkSecurityGroupName": "[concat(variables('namingInfix'), 'instanceNsg')]",
+      "nicName": "[concat(variables('namingInfix'), 'nic')]",
+      "ipConfigName": "[concat(variables('namingInfix'), 'ipconfig')]",
+      "appGwPublicIPAddressName": "[concat(variables('namingInfix'), 'appGwPip')]",
+      "appGwName": "[concat(variables('namingInfix'), 'appGw')]",
+      "appGwPublicIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('appGwPublicIPAddressName'))]",
+      "appGwID": "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'))]",
+      "appGwSubnetName": "[concat(variables('namingInfix'),'appGwSubnet')]",
+      "appGwSubnetPrefix": "10.0.1.0/24",
+      "appGwSubnetID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('appGwSubnetName'))]",
+      "appGwFrontendPort": 80,
+      "appGwBackendPort": 80,
+      "appGwBePoolName": "[concat(variables('namingInfix'), 'appGwBepool')]",
+      "linuxConfiguration": {
+        "disablePasswordAuthentication": true,
+        "ssh": {
+          "publicKeys": [
+            {
+              "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+              "keyData": "[parameters('adminPasswordOrKey')]"
+            }
+          ]
+        }
+      }
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Network/virtualNetworks",
+        "name": "[variables('virtualNetworkName')]",
+        "location": "[resourceGroup().location]",
+        "apiVersion": "2017-04-01",
+        "properties": {
+          "addressSpace": {
+            "addressPrefixes": [
+              "[variables('addressPrefix')]"
+            ]
+          },
+          "subnets": [
+            {
+              "name": "[variables('subnetName')]",
+              "properties": {
+                "addressPrefix": "[variables('subnetPrefix')]"
+              }
+            },
+            {
+              "name": "[variables('appGwSubnetName')]",
+              "properties": {
+                "addressPrefix": "[variables('appGwSubnetPrefix')]"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "apiVersion": "2019-04-01",
+        "name": "[variables('appGwNetworkSecurityGroupName')]",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "securityRules": [
+            {
+              "name": "HTTP",
+              "properties": {
+                "description": "Allow HTTP traffic",
+                "protocol": "Tcp",
+                "sourcePortRange": "80",
+                "destinationPortRange": "80",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 100,
+                "direction": "Inbound"
+              }
+            },
+            {
+              "name": "HTTPS",
+              "properties": {
+                "description": "Allow HTTPS traffic",
+                "protocol": "Tcp",
+                "sourcePortRange": "443",
+                "destinationPortRange": "443",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 101,
+                "direction": "Inbound"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "apiVersion": "2019-04-01",
+        "name": "[variables('instanceNetworkSecurityGroupName')]",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          
+          "securityRules": [
+            {
+              "name": "HTTP",
+              "properties": {
+                "description": "Allow HTTP traffic to the TIBCO JasperReports Server instances",
+                "protocol": "Tcp",
+                "sourcePortRange": "80",
+                "destinationPortRange": "80",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 100,
+                "direction": "Inbound"
+              }
+            },
+            {
+              "name": "HTTPS",
+              "properties": {
+                "description": "Allow HTTPS traffic to the TIBCO JasperReports Server instances",
+                "protocol": "Tcp",
+                "sourcePortRange": "443",
+                "destinationPortRange": "443",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 101,
+                "direction": "Inbound"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "Microsoft.Network/publicIPAddresses",
+        "name": "[variables('appGwPublicIPAddressName')]",
+        "location": "[resourceGroup().location]",
+        "apiVersion": "2017-04-01",
+        "properties": {
+          "publicIPAllocationMethod": "Dynamic"
+        }
+      },
+      {
+        "type": "Microsoft.Network/applicationGateways",
+        "name": "[variables('appGwName')]",
+        "location": "[resourceGroup().location]",
+        "apiVersion": "2017-04-01",
+        "dependsOn": [
+          "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+          "[concat('Microsoft.Network/publicIPAddresses/', variables('appGwPublicIPAddressName'))]"
+        ],
+        "properties": {
+          "sku": {
+            "name": "Standard_Large",
+            "tier": "Standard",
+            "capacity": "10"
+          },
+          "gatewayIPConfigurations": [
+            {
+              "name": "appGwIpConfig",
+              "properties": {
+                "subnet": {
+                  "id": "[variables('appGwSubnetID')]"
+                }
+              }
+            }
+          ],
+          "frontendIPConfigurations": [
+            {
+              "name": "appGwFrontendIP",
+              "properties": {
+                "PublicIPAddress": {
+                  "id": "[variables('appGwPublicIPAddressID')]"
+                }
+              }
+            }
+          ],
+          "frontendPorts": [
+            {
+              "name": "appGwFrontendPort",
+              "properties": {
+                "Port": "[variables('appGwFrontendPort')]"
+              }
+            }
+          ],
+          "backendAddressPools": [
+            {
+              "name": "[variables('appGwBePoolName')]"
+            }
+          ],
+          "backendHttpSettingsCollection": [
+            {
+              "name": "appGwBackendHttpSettings",
+              "properties": {
+                "Port": "[variables('appGwBackendPort')]",
+                "Protocol": "Http",
+                "CookieBasedAffinity": "Disabled"
+              }
+            }
+          ],
+          "httpListeners": [
+            {
+              "name": "appGwHttpListener",
+              "properties": {
+                "FrontendIPConfiguration": {
+                  "Id": "[concat(variables('appGwID'), '/frontendIPConfigurations/appGwFrontendIP')]"
+                },
+                "FrontendPort": {
+                  "Id": "[concat(variables('appGwID'), '/frontendPorts/appGwFrontendPort')]"
+                },
+                "Protocol": "Http",
+                "SslCertificate": null
+              }
+            }
+          ],
+          "requestRoutingRules": [
+            {
+              "Name": "rule1",
+              "properties": {
+                "RuleType": "Basic",
+                "httpListener": {
+                  "id": "[concat(variables('appGwID'), '/httpListeners/appGwHttpListener')]"
+                },
+                "backendAddressPool": {
+                  "id": "[concat(variables('appGwID'), '/backendAddressPools/', variables('appGwBePoolName'))]"
+                },
+                "backendHttpSettings": {
+                  "id": "[concat(variables('appGwID'), '/backendHttpSettingsCollection/appGwBackendHttpSettings')]"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "Microsoft.Compute/virtualMachineScaleSets",
+        "name": "[variables('namingInfix')]",
+        "location": "[resourceGroup().location]",
+        "apiVersion": "2017-03-30",
+        "dependsOn": [
+          "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+          "[concat('Microsoft.Network/applicationGateways/', variables('appGwName'))]"
+        ],
+        "sku": {
+          "name": "[parameters('vmSku')]",
+          "tier": "Standard",
+          "capacity": "[parameters('instanceCount')]"
+        },
+        "properties": {
+          "overprovision": "true",
+          "singlePlacementGroup": "false",
+          "upgradePolicy": {
+            "mode": "Manual"
+          },
+          "virtualMachineProfile": {
+            "storageProfile": {
+              "osDisk": {
+                "createOption": "FromImage",
+                "caching": "ReadWrite",
+                "managedDisk": {
+                    "storageAccountType": "Premium_LRS"
+                },
+                "diskSizeGB": 30
+              },
+              "dataDisks": [],
+              "imageReference": {
+                 "id": "[parameters('js-image')]"
+              }
+            },
+            "osProfile": {
+              "computerNamePrefix": "[variables('namingInfix')]",
+              "adminUsername": "[parameters('adminUsername')]",
+              "adminPassword": "[parameters('adminPasswordOrKey')]",
+              "linuxConfiguration": {
+                "disablePasswordAuthentication": false
+                }
+            },
+            "networkProfile": {
+              "networkInterfaceConfigurations": [
+                {
+                  "name": "[variables('nicName')]",
+                  "properties": {
+                    "primary": true,
+                    "networkSecurityGroup": {
+                      "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('instanceNetworkSecurityGroupName')))]"
+                    },
+                    "ipConfigurations": [
+                      {
+                        "name": "[variables('ipConfigName')]",
+                        "properties": {
+                          "subnet": {
+                            "id": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'), '/subnets/', variables('subnetName'))]"
+                          },
+                          "ApplicationGatewayBackendAddressPools": [
+                            {
+                              "id": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/applicationGateways/', variables('appGwName'), '/backendAddressPools/', variables('appGwBePoolName'))]"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "type": "Microsoft.Insights/autoscaleSettings",
+        "apiVersion": "2015-04-01",
+        "name": "autoscalehost",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+          "[concat('Microsoft.Compute/virtualMachineScaleSets/', variables('namingInfix'))]"
+        ],
+        "properties": {
+          "name": "autoscalehost",
+          "targetResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', variables('namingInfix'))]",
+          "enabled": true,
+          "profiles": [
+            {
+              "name": "Profile1",
+              "capacity": {
+                "minimum": "1",
+                "maximum": "10",
+                "default": "1"
+              },
+              "rules": [
+                {
+                  "metricTrigger": {
+                    "metricName": "Percentage CPU",
+                    "metricNamespace": "",
+                    "metricResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', variables('namingInfix'))]",
+                    "timeGrain": "PT1M",
+                    "statistic": "Average",
+                    "timeWindow": "PT5M",
+                    "timeAggregation": "Average",
+                    "operator": "GreaterThan",
+                    "threshold": 60
+                  },
+                  "scaleAction": {
+                    "direction": "Increase",
+                    "type": "ChangeCount",
+                    "value": "1",
+                    "cooldown": "PT5M"
+                  }
+                },
+                {
+                  "metricTrigger": {
+                    "metricName": "Percentage CPU",
+                    "metricNamespace": "",
+                    "metricResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', variables('namingInfix'))]",
+                    "timeGrain": "PT1M",
+                    "statistic": "Average",
+                    "timeWindow": "PT30M",
+                    "timeAggregation": "Average",
+                    "operator": "LessThan",
+                    "threshold": 40
+                  },
+                  "scaleAction": {
+                    "direction": "Decrease",
+                    "type": "ChangeCount",
+                    "value": "1",
+                    "cooldown": "PT5M"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
