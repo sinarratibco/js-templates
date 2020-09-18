@@ -2,6 +2,34 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json",
     "contentVersion": "1.0.0.0",
     "parameters": {
+      "vnetName":{
+        "type": "string",
+        "defaultValue": "VNet1",
+        "metadata": {
+          "description": "VNet name"
+        }
+      },
+      "vnetAddressPrefix": {
+        "type": "string",
+        "defaultValue": "10.0.0.0/16",
+        "metadata": {
+          "description": "Address prefix for the new Virtual Network"
+        }
+      },
+      "virtualNetworkSubnet1Id": {
+        "type": "string",
+        "defaultValue": "subnet",
+        "metadata": {
+            "description": "Subnet 1 ID"
+        }
+      },
+      "virtualNetworkSubnet2Id": {
+        "type": "string",
+        "defaultValue": "subnet",
+        "metadata": {
+            "description": "Subnet 2 ID"
+        }
+      },
       "vmSku": {
         "type": "string",
         "defaultValue": "Standard_D2s_v3",
@@ -54,10 +82,7 @@
     },
     "variables": {
       "namingInfix": "[parameters('vmssName')]",
-      "addressPrefix": "10.0.0.0/16",
-      "subnetPrefix": "10.0.8.0/21",
-      "virtualNetworkName": "[concat(variables('namingInfix'), 'vnet')]",
-      "subnetName": "[concat(variables('namingInfix'), 'subnet')]",
+      "virtualNetworkName": "[parameters('vnet')]",
       "appGwNetworkSecurityGroupName": "[concat(variables('namingInfix'), 'appGwNsg')]",
       "bastionNetworkSecurityGroupName": "[concat(variables('namingInfix'), 'bastionNsg')]",
       "instanceNetworkSecurityGroupName": "[concat(variables('namingInfix'), 'instanceNsg')]",
@@ -68,8 +93,7 @@
       "appGwPublicIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('appGwPublicIPAddressName'))]",
       "appGwID": "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'))]",
       "appGwSubnetName": "[concat(variables('namingInfix'),'appGwSubnet')]",
-      "appGwSubnetPrefix": "10.0.1.0/24",
-      "appGwSubnetID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('appGwSubnetName'))]",
+      "appGwSubnetID": "[parameters('virtualNetworkSubnet1Id')]",
       "appGwFrontendPort": 80,
       "appGwBackendPort": 80,
       "appGwBePoolName": "[concat(variables('namingInfix'), 'appGwBepool')]",
@@ -86,33 +110,6 @@
       }
     },
     "resources": [
-      {
-        "type": "Microsoft.Network/virtualNetworks",
-        "name": "[variables('virtualNetworkName')]",
-        "location": "[resourceGroup().location]",
-        "apiVersion": "2017-04-01",
-        "properties": {
-          "addressSpace": {
-            "addressPrefixes": [
-              "[variables('addressPrefix')]"
-            ]
-          },
-          "subnets": [
-            {
-              "name": "[variables('subnetName')]",
-              "properties": {
-                "addressPrefix": "[variables('subnetPrefix')]"
-              }
-            },
-            {
-              "name": "[variables('appGwSubnetName')]",
-              "properties": {
-                "addressPrefix": "[variables('appGwSubnetPrefix')]"
-              }
-            }
-          ]
-        }
-      },
       {
         "type": "Microsoft.Network/networkSecurityGroups",
         "apiVersion": "2019-04-01",
@@ -348,7 +345,7 @@
                         "name": "[variables('ipConfigName')]",
                         "properties": {
                           "subnet": {
-                            "id": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'), '/subnets/', variables('subnetName'))]"
+                            "id": "[parameters('virtualNetworkSubnet2Id')]"
                           },
                           "ApplicationGatewayBackendAddressPools": [
                             {
