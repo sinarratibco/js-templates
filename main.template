@@ -113,7 +113,7 @@
         }
       },
       "js-image": {
-        "defaultValue": "/subscriptions/f7bfc712-425e-4194-b5a1-194cc18b9d5e/resourceGroups/sindhuja-js-rg/providers/Microsoft.Compute/images/sindhuja-js-7.8.0-vm-image-draft-1",
+        "defaultValue": "image-name",
         "type": "string"
       }
     },
