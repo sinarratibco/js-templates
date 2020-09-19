@@ -17,9 +17,9 @@
         }
       },
       "vnetAddressPrefix": {
-      "type": "string",
-      "defaultValue": "10.0.0.0/16",
-      "metadata": {
+        "type": "string",
+        "defaultValue": "10.0.0.0/16",
+        "metadata": {
         "description": "Address prefix for the new Virtual Network"
         }
       },
@@ -65,8 +65,55 @@
           "description": "Name of Azure Bastion resource"
         }
       },
+      "instanceCount": {
+        "type": "int",
+        "defaultValue": 1,
+        "metadata": {
+          "description": "Number of VM instances (1000 or less)."
+        },
+        "maxValue": 1000
+      },
+      "vmSku": {
+        "type": "string",
+        "defaultValue": "Standard_D2s_v3",
+        "metadata": {
+          "description": "Size of VMs in the VM Scale Set."
+        }
+      },
+      "vmssName": {
+        "type": "string",
+        "defaultValue": "js-vmss",
+        "metadata": {
+          "description": "String used as a base for naming resources. Must be 3-57 characters in length and globally unique across Azure. A hash is prepended to this string for some resources, and resource-specific information is appended."
+        },
+        "maxLength": 57
+      },
+      "vmAdminUsername": {
+        "type": "string",
+        "defaultValue": "jsuser",
+        "metadata": {
+          "description": "Admin username on all VMs."
+        }
+      },
+      "vmAuthenticationType": {
+        "type": "string",
+        "defaultValue": "password",
+        "allowedValues": [
+          "sshPublicKey",
+          "password"
+        ],
+        "metadata": {
+          "description": "Type of authentication to use on the Virtual Machine. SSH key is recommended."
+        }
+      },
+      "vmAdminPasswordOrKey": {
+        "type": "securestring",
+        "metadata": {
+          "description": "SSH Key or password for the Virtual Machine. SSH key is recommended."
+        }
+      },
       "js-image": {
-        "defaultValue": "image-name",
+        "defaultValue": "/subscriptions/f7bfc712-425e-4194-b5a1-194cc18b9d5e/resourceGroups/sindhuja-js-rg/providers/Microsoft.Compute/images/sindhuja-js-7.8.0-vm-image-draft-1",
         "type": "string"
       }
     },
@@ -130,8 +177,35 @@
               "subnetName":{"value": "[parameters('subnet2Prefix')]"},
               "vnetAddressPrefix":{"value": "[parameters('vnetAddressPrefix')]"},
               "subnetPrefix":{"value": "[parameters('subnet2Prefix')]"},
-              "virtualNetworkSubnetId":{"value": "[reference('linkedTemplateVnet').outputs.subnet2ResourceIdOutput.value]"},
+              "virtualNetworkSubnet2Id":{"value": "[reference('linkedTemplateVnet').outputs.subnet2ResourceIdOutput.value]"},
               "skuSizeMB":{"value": 51200}
+            }
+          }
+        },
+        {
+          "apiVersion": "2020-06-01",
+          "name": "linkedTemplate-Workload",
+          "type": "Microsoft.Resources/deployments",
+          "dependsOn": [
+            "linkedTemplate-Database"
+          ],
+          "properties": {
+            "mode": "Incremental",
+            "templateLink": {
+              "uri": "https://raw.githubusercontent.com/sinarratibco/js-templates/master/cluster-workload.template"
+            },
+            "parameters": {
+              "vmSku": {"value": "[parameters('vmSku')]"},
+              "vmssName": {"value": "[parameters('vmssName')]"},
+              "instanceCount": {"value": "[parameters('instanceCount')]"},
+              "adminUsername": {"value": "[parameters('vmAdminUsername')]"},
+              "authenticationType": {"value": "[parameters('vmAuthenticationType')]"},
+              "adminPasswordOrKey": {"value": "[parameters('vmAdminPasswordOrKey')]"},
+              "js-image": {"value": "[parameters('js-image')]"},
+              "vnetName": {"value": "[parameters('vnetName')]"},
+              "vnetAddressPrefix":{"value": "[parameters('vnetAddressPrefix')]"},
+              "virtualNetworkSubnet1Id":{"value": "[reference('linkedTemplateVnet').outputs.subnet1ResourceIdOutput.value]"},
+              "virtualNetworkSubnet2Id":{"value": "[reference('linkedTemplateVnet').outputs.subnet2ResourceIdOutput.value]"}
             }
           }
         }
