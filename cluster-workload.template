@@ -202,7 +202,6 @@
         "location": "[resourceGroup().location]",
         "apiVersion": "2017-04-01",
         "dependsOn": [
-          "[variables('virtualNetworkName')]",
           "[concat('Microsoft.Network/publicIPAddresses/', variables('appGwPublicIPAddressName'))]"
         ],
         "properties": {
@@ -294,7 +293,6 @@
         "location": "[resourceGroup().location]",
         "apiVersion": "2017-03-30",
         "dependsOn": [
-          "[variables('virtualNetworkName')]",
           "[concat('Microsoft.Network/applicationGateways/', variables('appGwName'))]"
         ],
         "sku": {
