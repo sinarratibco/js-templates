@@ -206,9 +206,9 @@
         ],
         "properties": {
           "sku": {
-            "name": "Standard_Large",
+            "name": "Standard_Small",
             "tier": "Standard",
-            "capacity": "10"
+            "capacity": "1"
           },
           "gatewayIPConfigurations": [
             {
