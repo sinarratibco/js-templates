@@ -78,6 +78,20 @@
       "js-image": {
         "defaultValue": "image-name",
         "type": "string"
+      },
+      "storageAccountName": {
+        "type": "string",
+        "defaultValue": "jasperstorageacc",
+        "metadata": {
+          "description": "Specifies the name of the Azure Storage account."
+        }
+      },
+      "containerName": {
+        "type": "string",
+        "defaultValue": "js-container1",
+        "metadata": {
+          "description": "Specifies the name of the blob container."
+        }
       }
     },
     "variables": {
@@ -423,6 +437,30 @@
             }
           ]
         }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "2019-06-01", 
+        "name": "[parameters('storageAccountName')]",
+        "location": "[resourceGroup().location]",
+        "sku": {
+          "name": "Standard_LRS",
+          "tier": "Standard"
+        },
+        "kind": "StorageV2",
+        "properties": {
+          "accessTier": "Hot"
+        },
+        "resources": [
+          {
+            "type": "blobServices/containers",
+            "apiVersion": "2019-06-01",
+            "name": "[concat('default/',parameters('containerName'))]",
+            "dependsOn": [
+              "[parameters('storageAccountName')]"
+            ]
+          }
+        ]
       }
     ]
   }
