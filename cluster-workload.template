@@ -92,6 +92,20 @@
         "metadata": {
           "description": "Specifies the name of the blob container."
         }
+      },
+      "_artifactsLocation": {
+        "type": "string",
+        "defaultValue": "https://raw.githubusercontent.com/sinarratibco/js-templates/master/",
+        "metadata": {
+          "description": "The base URI where artifacts required by this template are located"
+        }
+      },
+      "_artifactsLocationSasToken": {
+        "type": "securestring",
+        "defaultValue": "",
+        "metadata": {
+          "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated"
+        }
       }
     },
     "variables": {
@@ -382,9 +396,9 @@
                     "autoUpgradeMinorVersion": true,
                     "settings": {
                       "fileUris": [
-                        "[uri(parameters('_artifactsLocation'), concat('installserver.sh', parameters('_artifactsLocationSasToken')))]"
+                        "[uri(parameters('_artifactsLocation'), concat('/scripts/workloadInitInstance.sh', parameters('_artifactsLocationSasToken')))]"
                       ],
-                      "commandToExecute": "bash installserver.sh"
+                      "commandToExecute": "bash workloadInitInstance.sh"
                     }
                   }
                 }
@@ -412,10 +426,6 @@
                 "requestPath": "/jasperserver-pro/login.html"
             }
           }
-      },
-      {
-        "name": "WorkloadInitializationInstance",
-        "type": "Extensions", 
       },
       {
         "type": "Microsoft.Insights/autoscaleSettings",
@@ -505,5 +515,11 @@
           }
         ]
       }
-    ]
+    ],
+    "outputs": {
+      "sample": {
+        "type": "object",
+        "value": "[reference('WorkloadInitializationInstance').outputs.instanceView.value]"
+      }
+    }
   }
