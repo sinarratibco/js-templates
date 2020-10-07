@@ -81,7 +81,7 @@
       },
       "storageAccountName": {
         "type": "string",
-        "defaultValue": "jasperstorageacc",
+        "defaultValue": "jasperstorageacc1",
         "metadata": {
           "description": "Specifies the name of the Azure Storage account."
         }
@@ -515,11 +515,5 @@
           }
         ]
       }
-    ],
-    "outputs": {
-      "sample": {
-        "type": "object",
-        "value": "[reference('WorkloadInitializationInstance').outputs.instanceView.value]"
-      }
-    }
+    ]
   }
