@@ -370,9 +370,52 @@
                   }
                 }
               ]
+            },
+            "extensionProfile": {
+              "extensions": [
+                {
+                  "name": "WorkloadInitializationInstance",
+                  "properties": {
+                    "publisher": "Microsoft.Azure.Extensions",
+                    "type": "CustomScript",
+                    "typeHandlerVersion": "2.0",
+                    "autoUpgradeMinorVersion": true,
+                    "settings": {
+                      "fileUris": [
+                        "[uri(parameters('_artifactsLocation'), concat('installserver.sh', parameters('_artifactsLocationSasToken')))]"
+                      ],
+                      "commandToExecute": "bash installserver.sh"
+                    }
+                  }
+                }
+              ]
             }
           }
         }
+      },
+      {
+        "type": "Microsoft.Compute/virtualMachineScaleSets/extensions",
+        "apiVersion": "2019-07-01",
+        "name": "[concat(variables('namingInfix'), '/HealthExtension')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachineScaleSets', variables('namingInfix'))]"
+        ],
+        "properties": {
+            "provisioningState": "Succeeded",
+            "autoUpgradeMinorVersion": false,
+            "publisher": "Microsoft.ManagedServices",
+            "type": "ApplicationHealthLinux",
+            "typeHandlerVersion": "1.0",
+            "settings": {
+                "protocol": "http",
+                "port": 80,
+                "requestPath": "/jasperserver-pro/login.html"
+            }
+          }
+      },
+      {
+        "name": "WorkloadInitializationInstance",
+        "type": "Extensions", 
       },
       {
         "type": "Microsoft.Insights/autoscaleSettings",
