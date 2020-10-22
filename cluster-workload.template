@@ -400,7 +400,7 @@
                         "https://github.com/sinarratibco/js-templates/tree/master/scripts/workloadInitInstance.sh"
                       ],
                       "protectedSettings": {
-                        "commandToExecute": "bash workloadInitInstance.sh"
+                        "commandToExecute": "echo hello"
                       }
                     }
                   }
