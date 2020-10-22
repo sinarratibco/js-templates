@@ -95,7 +95,7 @@
       },
       "_artifactsLocation": {
         "type": "string",
-        "defaultValue": "https://raw.githubusercontent.com/sinarratibco/js-templates/master",
+        "defaultValue": "https://github.com/sinarratibco/js-templates/blob/master/scripts/",
         "metadata": {
           "description": "The base URI where artifacts required by this template are located"
         }
@@ -389,6 +389,7 @@
               "extensions": [
                 {
                   "name": "WorkloadInitializationInstance",
+                  "type": "Microsoft.Compute/virtualMachineScaleSets/extensions"
                   "properties": {
                     "publisher": "Microsoft.Azure.Extensions",
                     "type": "CustomScript",
@@ -396,9 +397,11 @@
                     "autoUpgradeMinorVersion": true,
                     "settings": {
                       "fileUris": [
-                        "[uri(parameters('_artifactsLocation'), concat('/scripts/workloadInitInstance.sh', parameters('_artifactsLocationSasToken')))]"
+                        "https://github.com/sinarratibco/js-templates/tree/master/scripts/workloadInitInstance.sh"
                       ],
-                      "commandToExecute": "bash workloadInitInstance.sh"
+                      "protectedSettings": {
+                        "commandToExecute": "bash workloadInitInstance.sh"
+                      }
                     }
                   }
                 }
