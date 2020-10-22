@@ -389,7 +389,7 @@
               "extensions": [
                 {
                   "name": "WorkloadInitializationInstance",
-                  "type": "Microsoft.Compute/virtualMachineScaleSets/extensions"
+                  "type": "Microsoft.Compute/virtualMachineScaleSets/extensions",
                   "properties": {
                     "publisher": "Microsoft.Azure.Extensions",
                     "type": "CustomScript",
