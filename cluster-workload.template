@@ -399,9 +399,7 @@
                       "fileUris": [
                         "https://github.com/sinarratibco/js-templates/tree/master/scripts/workloadInitInstance.sh"
                       ],
-                      "protectedSettings": {
-                        "commandToExecute": "echo hello"
-                      }
+                      "commandToExecute": "echo hello"
                     }
                   }
                 }
